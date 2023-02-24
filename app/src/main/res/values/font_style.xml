@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="customTextViewFontStyle" parent="@android:style/Widget.DeviceDefault.TextView">
+    <style name="customTextViewFontStyle" parent="Widget.AppCompat.TextView">
         <item name="android:fontFamily">@font/spoqa_han_sans_neo_regular</item>
     </style>
 
@@ -8,7 +8,7 @@
         <item name="android:fontFamily">@font/spoqa_han_sans_neo_regular</item>
     </style>
 
-    <style name="customEditTextFontStyle" parent="@android:style/Widget.DeviceDefault.EditText">
+    <style name="customEditTextFontStyle">
         <item name="android:fontFamily">@font/spoqa_han_sans_neo_regular</item>
     </style>
 

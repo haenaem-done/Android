@@ -34,11 +34,11 @@
 
         <TimePicker
             android:id="@+id/tp_alarm_time"
+            style="@style/ob_alarm_timepicker"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:timePickerMode="spinner"
-            app:layout_constraintTop_toBottomOf="@id/tv_sub_title1"
-            style="@style/ob_alarm_timepicker"/>
+            app:layout_constraintTop_toBottomOf="@id/tv_sub_title1" />
 
         <TextView
             android:id="@+id/tv_sub_title2"
