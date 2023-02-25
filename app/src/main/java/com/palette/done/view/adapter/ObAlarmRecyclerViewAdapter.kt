@@ -10,12 +10,12 @@ import android.widget.LinearLayout
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.palette.done.R
+import com.palette.done.data.enums.DaysType
 import com.palette.done.databinding.ItemObAlarmWeekBinding
 import com.palette.done.view.util.Util
 
 class ObAlarmRecyclerViewAdapter(var width: Int) : RecyclerView.Adapter<ObAlarmRecyclerViewAdapter.ObAlarmViewHolder>() {
 
-    private val week = arrayListOf("월", "화", "수", "목", "금", "토", "일")
     private lateinit var weekItemClickListener: OnWeekItemClickListener
     private val util = Util()
 
@@ -27,20 +27,20 @@ class ObAlarmRecyclerViewAdapter(var width: Int) : RecyclerView.Adapter<ObAlarmR
     }
 
     override fun onBindViewHolder(holder: ObAlarmViewHolder, position: Int) {
-        holder.binding.tvWeekDay.text = week[position]
+        holder.binding.tvWeekDay.text = DaysType.valueOf(position).kor
         holder.binding.tvWeekDay.setOnClickListener {
-            weekItemClickListener.onClick(it, position)
+            weekItemClickListener.onClick(it, DaysType.valueOf(position))
         }
     }
 
     override fun getItemCount(): Int {
-        return week.size
+        return DaysType.values().size
     }
 
     class ObAlarmViewHolder(val binding: ItemObAlarmWeekBinding): RecyclerView.ViewHolder(binding.root)
 
     interface OnWeekItemClickListener {
-        fun onClick(v: View, position: Int)
+        fun onClick(v: View, daysType: DaysType)
     }
 
     fun setWeekItemClickListener(onWeekItemClickListener: OnWeekItemClickListener) {

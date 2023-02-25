@@ -1,10 +1,14 @@
 package com.palette.done.view.signin
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context.ALARM_SERVICE
 import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Point
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,11 +16,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.NumberPicker
 import android.widget.TimePicker
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.palette.done.data.enums.DaysType
 import com.palette.done.data.remote.repository.MemberRepository
 import com.palette.done.databinding.FragmentObAlarmBinding
+import com.palette.done.receiver.DoneBroadcastReceiver
+import com.palette.done.receiver.DoneBroadcastReceiver.Companion.ALARM_TIMER
+import com.palette.done.receiver.DoneBroadcastReceiver.Companion.NOTIFICATION_ID
 import com.palette.done.view.adapter.ObAlarmRecyclerViewAdapter
 import com.palette.done.view.decoration.RecyclerViewDecoration
 import com.palette.done.view.main.MainActivity
@@ -25,6 +34,7 @@ import com.palette.done.viewmodel.OnBoardingViewModel
 import com.palette.done.viewmodel.OnBoardingViewModelFactory
 import okhttp3.internal.wait
 import java.text.DecimalFormat
+import java.util.Calendar
 
 
 class ObAlarmFragment : Fragment() {
@@ -32,17 +42,54 @@ class ObAlarmFragment : Fragment() {
     private var _binding: FragmentObAlarmBinding? = null
     private val binding get() = _binding!!
 
-    private val onBoardingVM: OnBoardingViewModel by activityViewModels { OnBoardingViewModelFactory(
-        MemberRepository()
-    ) }
+    private val onBoardingVM: OnBoardingViewModel by activityViewModels {
+        OnBoardingViewModelFactory(
+            MemberRepository()
+        )
+    }
 
     private val INTERVAL = 5
     private val FORMATTER: DecimalFormat = DecimalFormat("00")
 
     private var minutePicker: NumberPicker? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentObAlarmBinding.inflate(inflater, container, false)
+
+        val alarmManager = requireActivity().getSystemService(ALARM_SERVICE) as AlarmManager
+
+        val intent = Intent(requireContext(), DoneBroadcastReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            requireContext(), NOTIFICATION_ID, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        binding.btnNext.setOnClickListener {
+
+            val calendar: Calendar = Calendar.getInstance()
+
+            val hour = binding.tpAlarmTime.hour
+            val minute = binding.tpAlarmTime.minute * 5
+
+            calendar.set(Calendar.HOUR_OF_DAY, hour)
+            calendar.set(Calendar.MINUTE, minute)
+            calendar.set(Calendar.SECOND, 0)
+
+            if (System.currentTimeMillis() > calendar.timeInMillis)
+                calendar.add(Calendar.DATE, 1)
+
+            alarmManager.setInexactRepeating(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                AlarmManager.INTERVAL_DAY,
+                pendingIntent
+            )
+        }
 
         onBoardingVM.alarmWeekday.observe(viewLifecycleOwner) {
             binding.btnNext.isEnabled = onBoardingVM.alarmWeekday.value!!.isNotEmpty()
@@ -57,19 +104,25 @@ class ObAlarmFragment : Fragment() {
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+
+    }
+
     private fun setNextButton() {
         // 기존 스택 없애고 메인 화면이 루트
-        binding.btnNext.setOnClickListener {
-            onBoardingVM.patchMemberProfile()
-            onBoardingVM.patchSuccess.observe(viewLifecycleOwner) {
-                if (it) {
-                    val intent = Intent(requireContext(), MainActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    startActivity(intent)
-                }
-            }
-        }
+//        binding.btnNext.setOnClickListener {
+//            onBoardingVM.patchMemberProfile()
+//            onBoardingVM.patchSuccess.observe(viewLifecycleOwner) {
+//                if (it) {
+//                    val intent = Intent(requireContext(), MainActivity::class.java)
+//                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+//                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//                    startActivity(intent)
+//                }
+//            }
+//        }
     }
 
     fun setMinutePicker() {
@@ -78,20 +131,14 @@ class ObAlarmFragment : Fragment() {
         for (i in 0 until numValues) {
             displayedValues[i] = FORMATTER.format(i * INTERVAL)
         }
-        val minute: View = binding.tpAlarmTime.findViewById(Resources.getSystem().getIdentifier("minute", "id", "android"))
-        if (minute != null && minute is NumberPicker) {
+        val minute: View = binding.tpAlarmTime.findViewById(
+            Resources.getSystem().getIdentifier("minute", "id", "android")
+        )
+        if (minute is NumberPicker) {
             minutePicker = minute
             minutePicker!!.minValue = 0
             minutePicker!!.maxValue = numValues - 1
             minutePicker!!.displayedValues = displayedValues
-        }
-    }
-
-    fun getMinute(): Int {
-        return if (minutePicker != null) {
-            minutePicker!!.value * INTERVAL
-        } else {
-            binding.tpAlarmTime.minute
         }
     }
 
@@ -100,24 +147,29 @@ class ObAlarmFragment : Fragment() {
         binding.tpAlarmTime.minute = 0
         binding.tpAlarmTime.setOnTimeChangedListener { view, hourOfDay, minute ->
             onBoardingVM.alarmHour.value = hourOfDay
-            onBoardingVM.alarmMin.value = minute*5
-            Log.d("ob_time_changed", "${onBoardingVM.alarmHour.value} : ${onBoardingVM.alarmMin.value}")
+            onBoardingVM.alarmMin.value = minute * 5
+            Log.d(
+                "ob_time_changed",
+                "${onBoardingVM.alarmHour.value} : ${onBoardingVM.alarmMin.value}"
+            )
         }
     }
 
     private fun setAlarmWeekBtn() {
-        binding.rcWeekBtn.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.rcWeekBtn.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         binding.rcWeekBtn.addItemDecoration(RecyclerViewDecoration(9))
         val util = Util()
         val display = requireActivity().windowManager.defaultDisplay
         val size = Point()
         display.getRealSize(size)
-        val adapter = ObAlarmRecyclerViewAdapter(size.x - util.dpToPx(40+9*6))
+        val adapter = ObAlarmRecyclerViewAdapter(size.x - util.dpToPx(40 + 9 * 6))
         binding.rcWeekBtn.adapter = adapter
-        adapter.setWeekItemClickListener(object : ObAlarmRecyclerViewAdapter.OnWeekItemClickListener {
-            override fun onClick(v: View, position: Int) {
+        adapter.setWeekItemClickListener(object :
+            ObAlarmRecyclerViewAdapter.OnWeekItemClickListener {
+            override fun onClick(v: View, daysType: DaysType) {
                 v.isSelected = !v.isSelected
-                onBoardingVM.setButtonSelectedAction(v.isSelected, position)
+                onBoardingVM.setButtonSelectedAction(v.isSelected, daysType)
             }
         })
     }
