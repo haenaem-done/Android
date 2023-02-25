@@ -3,6 +3,7 @@ package com.palette.done.viewmodel
 import android.util.Log
 import androidx.lifecycle.*
 import com.palette.done.DoneApplication
+import com.palette.done.data.enums.DaysType
 import com.palette.done.data.remote.model.member.MemberProfile
 import com.palette.done.data.remote.model.member.MemberProfileResponse
 import com.palette.done.data.remote.repository.MemberRepository
@@ -18,13 +19,10 @@ class OnBoardingViewModel(private val repository: MemberRepository): ViewModel()
     var alarmHour: MutableLiveData<Int> = MutableLiveData(0)
     var alarmMin: MutableLiveData<Int> = MutableLiveData(0)  // 16:00 <- 24시 기준
 
-    val weekList = mutableListOf<Int>()
-    val _weekList = MutableLiveData<List<Int>>()
-    var alarmWeekday: LiveData<List<Int>> = _weekList
+    private val _alarmWeekday = MutableLiveData<Set<DaysType>>(setOf())
+    val alarmWeekday: LiveData<Set<DaysType>> = _alarmWeekday
 
     var patchSuccess: MutableLiveData<Boolean> = MutableLiveData(false)
-
-    val week = arrayListOf<String>("Mon","Tue","Wed","Thu","Fri","Sat","Sun")
 
     fun patchMemberProfile() {
 //        val alarmTime = "${alarmHour.value}:${alarmMin.value}"
@@ -75,14 +73,13 @@ class OnBoardingViewModel(private val repository: MemberRepository): ViewModel()
         }
     }
 
-    fun setButtonSelectedAction(selected: Boolean, position: Int) {
+    fun setButtonSelectedAction(selected: Boolean, daysType: DaysType) {
         if (selected) {
-            weekList.add(position)
+            _alarmWeekday.value = alarmWeekday.value?.plus(daysType) ?: setOf()
         } else {
-            weekList.remove(position)
+            _alarmWeekday.value = alarmWeekday.value?.minus(daysType) ?: setOf()
         }
-        _weekList.value = weekList
-        Log.d("ob_vm_weekList", "${weekList}")
+        Log.d("ob_vm_weekList", "${_alarmWeekday.value}")
     }
 }
 
