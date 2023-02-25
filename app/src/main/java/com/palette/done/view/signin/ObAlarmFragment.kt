@@ -83,12 +83,10 @@ class ObAlarmFragment : Fragment() {
             if (System.currentTimeMillis() > calendar.timeInMillis)
                 calendar.add(Calendar.DATE, 1)
 
-            alarmManager.setInexactRepeating(
-                AlarmManager.RTC_WAKEUP,
-                calendar.timeInMillis,
-                AlarmManager.INTERVAL_DAY,
-                pendingIntent
-            )
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,pendingIntent)
+
+            Toast.makeText(requireContext(), "${calendar.time}", Toast.LENGTH_LONG).show()
         }
 
         onBoardingVM.alarmWeekday.observe(viewLifecycleOwner) {
