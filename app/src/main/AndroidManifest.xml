@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:name=".DoneApplication"
         android:allowBackup="false"
@@ -13,7 +15,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Done">
-        <activity android:name=".view.main.notice.GuidePlanActivity"/>
+        <receiver
+            android:name=".receiver.DoneBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity android:name=".view.main.notice.GuidePlanActivity" />
         <activity android:name=".view.my.sticker.StickerActivity" />
         <activity android:name=".view.my.MyEditActivity" />
         <activity android:name=".view.my.MyMenuActivity" />
