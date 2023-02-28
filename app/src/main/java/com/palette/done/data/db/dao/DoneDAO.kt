@@ -94,5 +94,13 @@ interface DoneDAO {
     @Query("SELECT * FROM Category")
     fun getCategory(): Flow<List<Category>>
 
+    //알람 ------------------------------------------------------------------------------------------
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAlarm(alarm: Alarm)
 
+    @Query("SELECT * FROM Alarm LIMIT 1")
+    fun getAlarm(): Flow<Alarm>
+
+    @Delete
+    suspend fun deleteAlarm(alarm: Alarm)
 }

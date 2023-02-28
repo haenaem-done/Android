@@ -102,4 +102,17 @@ class DoneRepository(private val doneDao: DoneDAO) {
     fun deleteAllPlan() {
         return doneDao.deleteAllPlan()
     }
+
+    // 알람
+    suspend fun insertAlarm(alarm: Alarm) {
+        return doneDao.insertAlarm(alarm)
+    }
+
+    suspend fun deleteAlarm(alarm: Alarm) {
+        return doneDao.deleteAlarm(alarm)
+    }
+
+    fun getAlarm(): Flow<Alarm> {
+        return doneDao.getAlarm()
+    }
 }
