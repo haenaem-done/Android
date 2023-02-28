@@ -22,6 +22,9 @@
     <string name="network_error">연결 상태가 불안정하니 네트워크 상태를 확인해 주세요.</string>
     <string name="full_list">오늘의 던리스트를 모두 채웠어요.</string>
 
+    <!--알림 채널 이름 -->
+    <string name="channel_write_done_list">던리스트 작성</string>
+
     <!-- 랜딩페이지 -->
     <string name="landing_start">시작하기</string>
     <string name="landing_title_1">선택하는 재미!</string>
