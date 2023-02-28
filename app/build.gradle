@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'kotlin-kapt'
+    id 'kotlin-parcelize'
 }
 
 android {
@@ -77,7 +78,7 @@ dependencies {
     implementation "androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha01"
 
     // Room
-    def roomVersion = "2.4.2"
+    def roomVersion = "2.5.0"
     implementation "androidx.room:room-runtime:$roomVersion"
     implementation "androidx.room:room-ktx:$roomVersion"
     kapt "androidx.room:room-compiler:$roomVersion"
@@ -110,4 +111,6 @@ dependencies {
 
     // Popup
     implementation "com.github.skydoves:powermenu:2.2.0"
+
+    implementation "androidx.work:work-runtime-ktx:2.8.0"
 }
