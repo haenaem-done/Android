@@ -27,9 +27,9 @@ class ObAlarmRecyclerViewAdapter(var width: Int) : RecyclerView.Adapter<ObAlarmR
     }
 
     override fun onBindViewHolder(holder: ObAlarmViewHolder, position: Int) {
-        holder.binding.tvWeekDay.text = DaysType.valueOf(position).kor
+        holder.binding.tvWeekDay.text = DaysType.valueOf(position + 1).kor
         holder.binding.tvWeekDay.setOnClickListener {
-            weekItemClickListener.onClick(it, DaysType.valueOf(position))
+            weekItemClickListener.onClick(it, DaysType.valueOf(position + 1))
         }
     }
 
