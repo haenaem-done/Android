@@ -1,14 +1,17 @@
 package com.palette.done.data.enums
 
+import java.util.Calendar
+
 enum class DaysType(val idx: Int, val kor: String) {
-    MON(0, "월"), TUE(1, "화"), WED(2, "수"),
-    THR(3, "목"), FRI(4, "금"), SAT(5, "토"), SUN(6, "일");
+    MON(Calendar.MONDAY, "월"), TUE(Calendar.TUESDAY, "화"), WED(Calendar.WEDNESDAY, "수"),
+    THR(Calendar.THURSDAY, "목"), FRI(Calendar.FRIDAY, "금"), SAT(Calendar.SATURDAY, "토"),
+    SUN(Calendar.SUNDAY, "일"), NONE(-1, "없음");
 
     companion object {
         fun valueOf(value: Int): DaysType {
             return values().find {
                 it.idx == value
-            } ?: MON
+            } ?: NONE
         }
     }
 }
