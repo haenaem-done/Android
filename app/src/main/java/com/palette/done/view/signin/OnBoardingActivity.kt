@@ -6,15 +6,27 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewTreeObserver
+import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import com.palette.done.DoneApplication
 import com.palette.done.R
+import com.palette.done.data.remote.repository.MemberRepository
 import com.palette.done.databinding.ActivityOnBoardingBinding
 import com.palette.done.view.adapter.ViewPagerAdapter
+import com.palette.done.viewmodel.OnBoardingViewModel
+import com.palette.done.viewmodel.OnBoardingViewModelFactory
 
 class OnBoardingActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityOnBoardingBinding
+
+    private val onBoardingVM: OnBoardingViewModel by viewModels {
+        OnBoardingViewModelFactory(
+            MemberRepository(),
+            (application as DoneApplication).doneRepository
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,8 +64,8 @@ class OnBoardingActivity : AppCompatActivity() {
     }
 
     private fun setViewPager() {
-//        val fragments = arrayListOf<Fragment>(ObNicknameFragment(), ObTypeFragment(), ObAlarmFragment()) <- 알람 추후 개발
-        val fragments = arrayListOf<Fragment>(ObNicknameFragment(), ObTypeFragment())
+        val fragments = arrayListOf<Fragment>(ObAlarmFragment(), ObNicknameFragment(), ObTypeFragment())
+//        val fragments = arrayListOf<Fragment>(ObNicknameFragment(), ObTypeFragment())
         val adapter = ViewPagerAdapter(this, fragments)
         binding.viewPagerOnBoarding.adapter = adapter
         binding.viewPagerOnBoarding.isUserInputEnabled = false  // swipe action 제거

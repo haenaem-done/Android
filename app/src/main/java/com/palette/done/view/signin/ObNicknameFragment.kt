@@ -39,7 +39,8 @@ class ObNicknameFragment(edit: Boolean = false) : Fragment() {
         MemberRepository()
     ) }
     private val onBoardingVM: OnBoardingViewModel by activityViewModels { OnBoardingViewModelFactory(
-        MemberRepository()
+        MemberRepository(),
+        (requireActivity().application as DoneApplication).doneRepository
     )}
 
     override fun onCreateView(
