@@ -6,35 +6,30 @@ import android.content.Context.ALARM_SERVICE
 import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Point
-import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.NumberPicker
-import android.widget.TimePicker
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.palette.done.DoneApplication
+import com.palette.done.data.db.entity.Alarm
 import com.palette.done.data.enums.DaysType
 import com.palette.done.data.remote.repository.MemberRepository
 import com.palette.done.databinding.FragmentObAlarmBinding
 import com.palette.done.receiver.DoneBroadcastReceiver
-import com.palette.done.receiver.DoneBroadcastReceiver.Companion.ALARM_TIMER
 import com.palette.done.receiver.DoneBroadcastReceiver.Companion.NOTIFICATION_ID
 import com.palette.done.view.adapter.ObAlarmRecyclerViewAdapter
 import com.palette.done.view.decoration.RecyclerViewDecoration
-import com.palette.done.view.main.MainActivity
+import com.palette.done.view.util.AlarmManagerUtil
 import com.palette.done.view.util.Util
 import com.palette.done.viewmodel.OnBoardingViewModel
 import com.palette.done.viewmodel.OnBoardingViewModelFactory
-import okhttp3.internal.wait
 import java.text.DecimalFormat
-import java.util.Calendar
 
 
 class ObAlarmFragment : Fragment() {
@@ -44,7 +39,8 @@ class ObAlarmFragment : Fragment() {
 
     private val onBoardingVM: OnBoardingViewModel by activityViewModels {
         OnBoardingViewModelFactory(
-            MemberRepository()
+            MemberRepository(),
+            (requireActivity().application as DoneApplication).doneRepository
         )
     }
 
@@ -61,32 +57,20 @@ class ObAlarmFragment : Fragment() {
     ): View {
         _binding = FragmentObAlarmBinding.inflate(inflater, container, false)
 
-        val alarmManager = requireActivity().getSystemService(ALARM_SERVICE) as AlarmManager
-
-        val intent = Intent(requireContext(), DoneBroadcastReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(), NOTIFICATION_ID, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
         binding.btnNext.setOnClickListener {
-
-            val calendar: Calendar = Calendar.getInstance()
-
             val hour = binding.tpAlarmTime.hour
-            val minute = binding.tpAlarmTime.minute * 5
+            val minute = binding.tpAlarmTime.minute * INTERVAL
 
-            calendar.set(Calendar.HOUR_OF_DAY, hour)
-            calendar.set(Calendar.MINUTE, minute)
-            calendar.set(Calendar.SECOND, 0)
+            val alarm = Alarm(
+                hour = hour,
+                min = minute,
+                days = onBoardingVM.alarmWeekday.value?.map { it.idx }?.toSet() ?: setOf()
+            )
 
-            if (System.currentTimeMillis() > calendar.timeInMillis)
-                calendar.add(Calendar.DATE, 1)
+            AlarmManagerUtil(requireContext().applicationContext).cancelAndSetAlarm(alarm)
+            onBoardingVM.insertOrUpdateAlarm(alarm)
 
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
-                calendar.timeInMillis,pendingIntent)
-
-            Toast.makeText(requireContext(), "${calendar.time}", Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(), "$hour $minute", Toast.LENGTH_LONG).show()
         }
 
         onBoardingVM.alarmWeekday.observe(viewLifecycleOwner) {
@@ -100,12 +84,6 @@ class ObAlarmFragment : Fragment() {
         setAlarmWeekBtn()
 
         return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-
     }
 
     private fun setNextButton() {
