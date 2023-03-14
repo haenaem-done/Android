@@ -15,6 +15,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.palette.done.DoneApplication
 import com.palette.done.R
+import com.palette.done.data.PreferenceManager
 import com.palette.done.data.db.entity.Alarm
 import com.palette.done.view.SplashActivity
 import com.palette.done.view.util.AlarmManagerUtil.Companion.WRITE_DONE_LIST_ALARM
@@ -38,7 +39,8 @@ class DoneBroadcastReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         notificationManager = context.getSystemService(
-            Context.NOTIFICATION_SERVICE) as NotificationManager
+            Context.NOTIFICATION_SERVICE
+        ) as NotificationManager
 
         val alarm = intent.parcelable<Alarm>(WRITE_DONE_LIST_ALARM) ?: return
 
@@ -55,14 +57,14 @@ class DoneBroadcastReceiver : BroadcastReceiver() {
         workManager.enqueue(workRequest)
 
 
-        if(currentDay in alarm.days) {
+        if (currentDay in alarm.days) {
             val channelName = context.getString(R.string.channel_write_done_list)
             createNotificationChannel(channelName)
             deliverNotification(context.applicationContext)
         }
     }
 
-    private fun createNotificationChannel(channelName: String){
+    private fun createNotificationChannel(channelName: String) {
         val notificationChannel = NotificationChannel(
             CHANNEL_ID,
             channelName,
@@ -70,11 +72,12 @@ class DoneBroadcastReceiver : BroadcastReceiver() {
         )
 
         notificationManager.createNotificationChannel(
-            notificationChannel)
+            notificationChannel
+        )
     }
 
     // Notification 등록
-    private fun deliverNotification(context: Context){
+    private fun deliverNotification(context: Context) {
         val contentIntent = Intent(context, SplashActivity::class.java)
         val contentPendingIntent = PendingIntent.getActivity(
             context,
@@ -85,13 +88,22 @@ class DoneBroadcastReceiver : BroadcastReceiver() {
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher_foreground)
-            .setContentTitle("타이틀 입니다.")
-            .setContentText("내용 입니다.")
+            .setContentTitle(context.getString(R.string.app_name))
+            .setContentText(produceRandomNotificationContent(context))
             .setContentIntent(contentPendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
 
         notificationManager.notify(NOTIFICATION_ID, builder.build())
+    }
+
+    private fun produceRandomNotificationContent(context: Context): String {
+        val notificationContents = listOf(
+            context.getString(R.string.noti_msg_1),
+            context.getString(R.string.noti_msg_2, DoneApplication.pref.nickname),
+            context.getString(R.string.noti_msg_3)
+        )
+        return notificationContents.random()
     }
 }
